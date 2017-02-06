@@ -1,6 +1,10 @@
 <?xml version="1.0"?>
 <layout>
     <adminhtml_catalog_category_edit>
+    <reference name="head">
+      <action method="addJs"><script>proxiblue/chosen.proto.js</script></action>
+      <action method="addCss"><name>proxiblue/chosen.css</name></action>
+    </reference>
         <reference name="category.tree">
             <action method="setTemplate">
                 <template>proxiblue/catalog/category/tree.phtml</template>

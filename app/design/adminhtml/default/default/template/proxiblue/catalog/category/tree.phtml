@@ -14,8 +14,62 @@
             <a href="#" onclick="tree.collapseTree(); return false;"><?php echo Mage::helper('catalog')->__('Collapse All'); ?></a> <span class="separator">|</span> <a href="#" onclick="tree.expandTree(); return false;"><?php echo Mage::helper('catalog')->__('Expand All'); ?></a>
         <?php endif; ?>
     </div>
+    <?php /*
     <div class="load-by-id">
         <input placeholder="Category Id" name="id" class="input-text direct-id" id="direct-id" type="text"/>
+        <button id="direct-id-button" title="Load Category" type="button" class="scalable" onclick="tree.jumpToCategory($('direct-id').value)" style=""><span><span><span>Load Category</span></span></span></button>
+    </div> */
+    ?>
+    <div class="load-by-id">
+        <?php
+          $allCategoriesCollection = Mage::getModel ( 'catalog/category' )->getCollection ()
+            ->addAttributeToSelect ( 'name' )
+            ->addAttributeToSelect ( 'level' )->addFieldToFilter ( 'level', array ('gt' => '1') );
+          $allCategoriesArray = $allCategoriesCollection->load ()->toArray ();
+
+          $buildPath = array();
+          foreach ($allCategoriesArray as $cat) {
+            $buildPath[$cat['entity_id']] = $cat['name'];
+          }
+          foreach ($allCategoriesArray as $key => $cat) {
+            $path = explode('/', $cat['path']);
+            $string = '';
+            foreach ($path as $pathId)
+            {
+              if (isset($buildPath[$pathId]))
+                $string.= $buildPath[$pathId] . '/';
+            }
+            $string = trim($string, '/');
+            $allCategoriesArray[$key]['pathStr'] = $string;
+          }
+        ?>
+        <select name="id" class="chosen-select" id="direct-id" style="width:200px">
+          <?php
+            foreach ($allCategoriesArray as $key => $cat) {
+              echo "<option value=\"".$cat['entity_id']."\">".$cat['pathStr']."</option>";
+            }
+          ?>
+        </select>
+
+  <script type="text/javascript">
+  document.observe('dom:loaded', function(evt) {
+    var config = {
+      '.chosen-select'           : { search_contains : true },
+      '.chosen-select-deselect'  : {allow_single_deselect:true},
+      '.chosen-select-no-single' : {disable_search_threshold:10},
+      '.chosen-select-no-results': {no_results_text: "Oops, nothing found!"},
+      '.chosen-select-width'     : {width: "95%"}
+    }
+    var results = [];
+    for (var selector in config) {
+      var elements = $$(selector);
+      for (var i = 0; i < elements.length; i++) {
+        results.push(new Chosen(elements[i],config[selector]));
+      }
+    }
+    return results;
+  });
+  </script>
         <button id="direct-id-button" title="Load Category" type="button" class="scalable" onclick="tree.jumpToCategory($('direct-id').value)" style=""><span><span><span>Load Category</span></span></span></button>
     </div>
     <?php if ($this->getRoot()): ?>
@@ -163,7 +217,7 @@ Ext.extend(Ext.tree.TreePanel.Enhanced, Ext.tree.TreePanel, {
         }
         updateContent(url, params);
     },
-    
+
     jumpToCategory : function(id)
     {
         var baseUrl = '<?php echo $this->getEditUrl() ?>';
@@ -181,7 +235,7 @@ Ext.extend(Ext.tree.TreePanel.Enhanced, Ext.tree.TreePanel, {
         updateContent(url, params);
         this.getNodeById(this.currentNodeId)
     }
-    
+
 });
 
 function reRenderTree(event, switcher)
